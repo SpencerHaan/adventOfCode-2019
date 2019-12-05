@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class Day3 {
 
     public static void main(String[] args) throws IOException {
-        List<Map<Junction, Integer>> junctions = InputLoader.load("day3.txt").map(Day3::layWires).collect(Collectors.toList());
+        List<Map<Junction, Integer>> junctions = InputLoader.stream("day3.txt").map(Day3::layWires).collect(Collectors.toList());
         Map<Junction, Integer> firstWire = junctions.get(0);
         Map<Junction, Integer> secondWire = junctions.get(1);
 

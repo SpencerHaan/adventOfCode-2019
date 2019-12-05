@@ -5,7 +5,7 @@ import java.io.IOException;
 public class Day1 {
 
     public static void main(String[] args) throws IOException {
-        int totalFuel = InputLoader.load("day1.txt").mapToInt(Integer::parseInt)
+        int totalFuel = InputLoader.stream("day1.txt").mapToInt(Integer::parseInt)
                 .map(Day1::calculateFuel)
                 .sum();
         System.out.println("Total Fuel: " + totalFuel);
