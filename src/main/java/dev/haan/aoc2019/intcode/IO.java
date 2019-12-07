@@ -1,5 +1,6 @@
 package dev.haan.aoc2019.intcode;
 
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -24,8 +25,8 @@ public final class IO {
         );
     }
 
-    public static IO bridge() {
-        BlockingQueue<Integer> queue = new LinkedBlockingQueue<>();
+    public static IO bridge(Integer...initial) {
+        BlockingQueue<Integer> queue = new LinkedBlockingQueue<>(Arrays.asList(initial));
         return new IO(queue::take, queue::put);
     }
 }

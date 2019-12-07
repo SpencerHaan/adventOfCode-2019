@@ -5,60 +5,44 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.SynchronousQueue;
 
 import dev.haan.aoc2019.intcode.Computer;
 import dev.haan.aoc2019.intcode.IO;
-import dev.haan.aoc2019.intcode.Reader;
-import dev.haan.aoc2019.intcode.Writer;
 
 public class Day7 {
 
-    public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         var input = InputLoader.load("day7.txt");
-
-//        int largestResult = 0;
-//        var initialSequence = List.of(5, 6, 7, 8, 9);
-//        for (List<Integer> permutation : permutations(initialSequence)) {
-//            int lastResult = 0;
-//
-//            for (int i = 0; i < permutation.size(); i++) {
-//                var in = new ByteArrayInputStream((permutation.get(i) + "\n" + lastResult).getBytes());
-//                var out = new ByteArrayOutputStream();
-//
-//                Computer amplifier = new Computer(new IO(in, out));
-//                amplifier.execute(input);
-//
-//                lastResult = Integer.parseInt(out.toString().trim());
-//                if (lastResult > largestResult) {
-//                    largestResult = lastResult;
-//                }
-//            }
-//        }
-//        System.out.println();
-//        System.out.println(largestResult);
-
         int highestSignal = 0;
-        var initialSequence = List.of(5, 6, 7, 8, 9);
-        for (List<Integer> permutation : permutations(initialSequence)) {
+
+        int largestResult = 0;
+        var phaseSequence = List.of(0, 1, 2, 3, 4);
+        for (List<Integer> permutation : permutations(phaseSequence)) {
+            int lastResult = computeSignal(permutation, input);
+            if (lastResult > largestResult) {
+                largestResult = lastResult;
+            }
+        }
+        System.out.println(largestResult);
+
+        var feedbackPhaseSequence = List.of(5, 6, 7, 8, 9);
+        for (List<Integer> permutation : permutations(feedbackPhaseSequence)) {
             int lastResult = computeSignal(permutation, input);
             if (lastResult > highestSignal) {
                 highestSignal = lastResult;
             }
         }
-        System.out.println();
         System.out.println(highestSignal);
     }
 
     private static int computeSignal(List<Integer> phaseCodes, String input) throws InterruptedException {
-        var abBridge = IO.bridge();
-        var bcBridge = IO.bridge();
-        var cdBridge = IO.bridge();
-        var deBridge = IO.bridge();
-        var eaBridge = IO.bridge();
+        var eaBridge = IO.bridge(phaseCodes.get(0), 0);
+        var abBridge = IO.bridge(phaseCodes.get(1));
+        var bcBridge = IO.bridge(phaseCodes.get(2));
+        var cdBridge = IO.bridge(phaseCodes.get(3));
+        var deBridge = IO.bridge(phaseCodes.get(4));
 
         var amplifierA = new Computer(new IO(eaBridge.in, abBridge.out));
         var amplifierB = new Computer(new IO(abBridge.in, bcBridge.out));
@@ -74,13 +58,6 @@ public class Day7 {
         executor.submit(() -> runAmplifier(amplifierE, input));
         executor.shutdown();
 
-        eaBridge.out.write(phaseCodes.get(0));
-        abBridge.out.write(phaseCodes.get(1));
-        bcBridge.out.write(phaseCodes.get(2));
-        cdBridge.out.write(phaseCodes.get(3));
-        deBridge.out.write(phaseCodes.get(4));
-
-        eaBridge.out.write(0);
         try {
             finalSignalFuture.get();
         } catch (InterruptedException | ExecutionException e) {
