@@ -1,18 +1,17 @@
 package dev.haan.aoc2019.intcode;
 
-import java.io.IOException;
 import java.util.stream.Stream;
 
 public enum Instruction {
     HALT(99, 0) {
         @Override
-        public int execute(Memory memory, Parameter... parameters) {
+        public int execute(Memory memory, IO io, Parameter... parameters) {
             throw new HaltException();
         }
     },
     ADD(1, 3) {
         @Override
-        public int execute(Memory memory, Parameter... parameters) {
+        public int execute(Memory memory, IO io, Parameter... parameters) {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected 3 parameters but have " + parameters.length);
             }
@@ -27,7 +26,7 @@ public enum Instruction {
     },
     MULTIPLY(2, 3) {
         @Override
-        public int execute(Memory memory, Parameter... parameters) {
+        public int execute(Memory memory, IO io, Parameter... parameters) {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected 3 parameters but have " + parameters.length);
             }
@@ -42,35 +41,28 @@ public enum Instruction {
     },
     INPUT(3, 1) {
         @Override
-        public int execute(Memory memory, Parameter... parameters) {
+        public int execute(Memory memory, IO io, Parameter... parameters) throws InterruptedException {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
-
-            int read;
-            try {
-                System.out.print("Input: ");
-                read = Character.getNumericValue(System.in.read());
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to read user input");
-            }
+            var read = io.in.read();
             memory.intSet(parameters[0].getValue(), read);
             return 0;
         }
     },
     OUTPUT(4, 1) {
         @Override
-        public int execute(Memory memory, Parameter... parameters) {
+        public int execute(Memory memory, IO io, Parameter... parameters) throws InterruptedException {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
-            System.out.println("Output: " + parameters[0].fromMemory(memory));
+            io.out.write(parameters[0].fromMemory(memory));
             return 0;
         }
     },
     JUMP_IF_TRUE(5, 2) {
         @Override
-        public int execute(Memory memory, Parameter... parameters) {
+        public int execute(Memory memory, IO io, Parameter... parameters) {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
@@ -81,7 +73,7 @@ public enum Instruction {
     },
     JUMP_IF_FALSE(6, 2) {
         @Override
-        public int execute(Memory memory, Parameter... parameters) {
+        public int execute(Memory memory, IO io, Parameter... parameters) {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
@@ -92,7 +84,7 @@ public enum Instruction {
     },
     LESS_THAN(7, 3) {
         @Override
-        public int execute(Memory memory, Parameter... parameters) {
+        public int execute(Memory memory, IO io, Parameter... parameters) {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
@@ -103,7 +95,7 @@ public enum Instruction {
     },
     EQUALS(8, 3) {
         @Override
-        public int execute(Memory memory, Parameter... parameters) {
+        public int execute(Memory memory, IO io, Parameter... parameters) {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
@@ -132,9 +124,9 @@ public enum Instruction {
         return parameterCount;
     }
 
-    public abstract int execute(Memory memory, Parameter...parameters);
+    public abstract int execute(Memory memory, IO io, Parameter...parameters) throws Exception;
 
-    private int getValue(Memory memory, Parameter parameter) {
+    private int getValue(Memory memory, IO io, Parameter parameter) {
         switch (parameter.getMode()) {
             case POSITION:
                 return memory.intGet(parameter.getValue());
@@ -145,7 +137,7 @@ public enum Instruction {
         }
     }
 
-    private void setValue(Memory memory, Parameter parameter, int value) {
+    private void setValue(Memory memory, IO io, Parameter parameter, int value) {
         switch (parameter.getMode()) {
             case POSITION:
                 memory.intSet(parameter.getValue(), value);

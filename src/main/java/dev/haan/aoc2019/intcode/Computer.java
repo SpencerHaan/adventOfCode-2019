@@ -1,6 +1,22 @@
 package dev.haan.aoc2019.intcode;
 
+import static java.util.Objects.requireNonNull;
+
 public class Computer {
+
+    private final IO io;
+
+    public Computer() {
+        this(IO.console());
+    }
+
+    public Computer(IO io) {
+        this.io = requireNonNull(io);
+    }
+
+    public IO io() {
+        return io;
+    }
 
     private static String reverse(String string){
         var chars = string.toCharArray();
@@ -12,11 +28,11 @@ public class Computer {
         return String.valueOf(reversed);
     }
 
-    public int execute(String input) {
+    public int execute(String input) throws Exception {
         return execute(Memory.load(input));
     }
 
-    public int execute(Memory memory) {
+    public int execute(Memory memory) throws Exception {
         int instructionPointer = 0;
         do {
             var opcode = memory.get(instructionPointer++);
@@ -36,9 +52,9 @@ public class Computer {
                 parameters[i] = new Parameter(parameterMode, memory.intGet(instructionPointer + i));
             }
 
-            int newPointer = 0;
+            int newPointer;
             try {
-                newPointer = instruction.execute(memory, parameters);
+                newPointer = instruction.execute(memory, io, parameters);
             } catch (HaltException e) {
                 break;
             }
