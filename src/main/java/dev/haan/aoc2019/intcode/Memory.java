@@ -42,9 +42,13 @@ public class Memory {
         set(relativeBase + index, value);
     }
 
+    public void adjustRelativeBase(int amount) {
+        relativeBase += amount;
+    }
+
     private void allocateMemory(long amount) {
         for (int i = 0; i < amount; i++) {
-            memory.add(amount);
+            memory.add(0L);
         }
     }
 }

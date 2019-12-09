@@ -82,7 +82,7 @@ public enum Instruction {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
-            var result = Instruction.getValue(memory, parameters[0]) < Instruction.getValue(memory, parameters[1]) ? 1 : 0;
+            var result = getValue(memory, parameters[0]) < getValue(memory, parameters[1]) ? 1 : 0;
             setValue(memory, parameters[2], result);
             return 0;
         }
@@ -93,8 +93,18 @@ public enum Instruction {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
-            var result = Instruction.getValue(memory, parameters[0]) == Instruction.getValue(memory, parameters[1]) ? 1 : 0;
+            var result = getValue(memory, parameters[0]) == getValue(memory, parameters[1]) ? 1 : 0;
             setValue(memory, parameters[2], result);
+            return 0;
+        }
+    },
+    ADJUST_RELATIVE_BASE(9, 1) {
+        @Override
+        public long execute(Memory memory, IO io, Parameter... parameters) throws Exception {
+            if (parameters.length != parameterCount()) {
+                throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
+            }
+            memory.adjustRelativeBase((int) getValue(memory, parameters[0]));
             return 0;
         }
     };
