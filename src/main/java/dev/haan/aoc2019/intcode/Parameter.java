@@ -3,9 +3,9 @@ package dev.haan.aoc2019.intcode;
 public class Parameter {
 
     private final ParameterMode mode;
-    private final int value;
+    private final long value;
 
-    public Parameter(ParameterMode mode, int value) {
+    public Parameter(ParameterMode mode, long value) {
         this.mode = mode;
         this.value = value;
     }
@@ -14,13 +14,7 @@ public class Parameter {
         return mode;
     }
 
-    public int getValue() {
+    public long getValue() {
         return value;
-    }
-
-    public int fromMemory(Memory memory) {
-        return mode == ParameterMode.POSITION
-                ? memory.intGet(value)
-                : value;
     }
 }

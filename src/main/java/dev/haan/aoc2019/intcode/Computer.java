@@ -28,14 +28,14 @@ public class Computer {
         return String.valueOf(reversed);
     }
 
-    public int execute(String input) throws Exception {
+    public long execute(String input) throws Exception {
         return execute(Memory.load(input));
     }
 
-    public int execute(Memory memory) throws Exception {
+    public long execute(Memory memory) throws Exception {
         int instructionPointer = 0;
         do {
-            var opcode = memory.get(instructionPointer++);
+            var opcode = String.valueOf(memory.get(instructionPointer++));
             var instructionCode = opcode.length() > 1
                     ? Integer.parseInt(opcode.substring(opcode.length() - 2))
                     : Integer.parseInt(opcode);
@@ -49,12 +49,12 @@ public class Computer {
                 var parameterMode = i < parameterModes.length
                         ? ParameterMode.load(Character.getNumericValue(parameterModes[i]))
                         : ParameterMode.load(0);
-                parameters[i] = new Parameter(parameterMode, memory.intGet(instructionPointer + i));
+                parameters[i] = new Parameter(parameterMode, memory.get(instructionPointer + i));
             }
 
             int newPointer;
             try {
-                newPointer = instruction.execute(memory, io, parameters);
+                newPointer = (int) instruction.execute(memory, io, parameters);
             } catch (HaltException e) {
                 break;
             }
@@ -63,6 +63,6 @@ public class Computer {
                     ? instructionPointer + instruction.parameterCount()
                     : newPointer;
         } while (true);
-        return memory.intGet(0);
+        return memory.get(0);
     }
 }

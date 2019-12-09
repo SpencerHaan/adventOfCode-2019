@@ -5,102 +5,96 @@ import java.util.stream.Stream;
 public enum Instruction {
     HALT(99, 0) {
         @Override
-        public int execute(Memory memory, IO io, Parameter... parameters) {
+        public long execute(Memory memory, IO io, Parameter... parameters) {
             throw new HaltException();
         }
     },
     ADD(1, 3) {
         @Override
-        public int execute(Memory memory, IO io, Parameter... parameters) {
+        public long execute(Memory memory, IO io, Parameter... parameters) {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected 3 parameters but have " + parameters.length);
             }
-            var value1 = parameters[0].fromMemory(memory);
-            var value2 = parameters[1].fromMemory(memory);
-           if (parameters[2].getMode() != ParameterMode.POSITION) {
-                throw new IllegalArgumentException("parameter 3 must be in POSITION mode");
-            }
-            memory.intSet(parameters[2].getValue(), value1 + value2);
-           return 0;
+            var value1 = getValue(memory, parameters[0]);
+            var value2 = getValue(memory, parameters[1]);
+            setValue(memory, parameters[2], value1 + value2);
+            return 0;
         }
     },
     MULTIPLY(2, 3) {
         @Override
-        public int execute(Memory memory, IO io, Parameter... parameters) {
+        public long execute(Memory memory, IO io, Parameter... parameters) {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected 3 parameters but have " + parameters.length);
             }
-            var value1 = parameters[0].fromMemory(memory);
-            var value2 = parameters[1].fromMemory(memory);
-            if (parameters[2].getMode() != ParameterMode.POSITION) {
-                throw new IllegalArgumentException("parameter 3 must be in POSITION mode");
-            }
-            memory.intSet(parameters[2].getValue(), value1 * value2);
+            var value1 = getValue(memory, parameters[0]);
+            var value2 = getValue(memory, parameters[1]);
+            setValue(memory, parameters[2], value1 * value2);
             return 0;
         }
     },
     INPUT(3, 1) {
         @Override
-        public int execute(Memory memory, IO io, Parameter... parameters) throws InterruptedException {
+        public long execute(Memory memory, IO io, Parameter... parameters) throws InterruptedException {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
             var read = io.in.read();
-            memory.intSet(parameters[0].getValue(), read);
+            setValue(memory, parameters[0], read);
             return 0;
         }
     },
     OUTPUT(4, 1) {
         @Override
-        public int execute(Memory memory, IO io, Parameter... parameters) throws InterruptedException {
+        public long execute(Memory memory, IO io, Parameter... parameters) throws InterruptedException {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
-            io.out.write(parameters[0].fromMemory(memory));
+            io.out.write(getValue(memory, parameters[0]));
             return 0;
         }
     },
     JUMP_IF_TRUE(5, 2) {
         @Override
-        public int execute(Memory memory, IO io, Parameter... parameters) {
+        public long execute(Memory memory, IO io, Parameter... parameters) {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
-            return parameters[0].fromMemory(memory) != 0
-                    ? parameters[1].fromMemory(memory)
+            return getValue(memory, parameters[0]) != 0
+                    ? getValue(memory, parameters[1])
                     : 0;
         }
     },
     JUMP_IF_FALSE(6, 2) {
         @Override
-        public int execute(Memory memory, IO io, Parameter... parameters) {
+        public long execute(Memory memory, IO io, Parameter... parameters) {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
-            return parameters[0].fromMemory(memory) == 0
-                    ? parameters[1].fromMemory(memory)
+            return getValue(memory, parameters[0]) == 0
+                    ? getValue(memory, parameters[1])
                     : 0;
         }
     },
     LESS_THAN(7, 3) {
         @Override
-        public int execute(Memory memory, IO io, Parameter... parameters) {
+        public long execute(Memory memory, IO io, Parameter... parameters) {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
-            var result = parameters[0].fromMemory(memory) < parameters[1].fromMemory(memory) ? 1 : 0;
-            memory.intSet(parameters[2].getValue(), result);
+            var result = Instruction.getValue(memory, parameters[0]) < Instruction.getValue(memory, parameters[1]) ? 1 : 0;
+            setValue(memory, parameters[2], result);
             return 0;
         }
     },
     EQUALS(8, 3) {
         @Override
-        public int execute(Memory memory, IO io, Parameter... parameters) {
+        public long execute(Memory memory, IO io, Parameter... parameters) {
             if (parameters.length != parameterCount()) {
                 throw new IllegalArgumentException("expected " + parameterCount() + " parameters but have " + parameters.length);
             }
-            var result = parameters[0].fromMemory(memory) == parameters[1].fromMemory(memory) ? 1 : 0;
-            memory.intSet(parameters[2].getValue(), result);
+            var result = Instruction.getValue(memory, parameters[0]) == Instruction.getValue(memory, parameters[1]) ? 1 : 0;
+            setValue(memory, parameters[2], result);
             return 0;
         }
     };
@@ -124,26 +118,31 @@ public enum Instruction {
         return parameterCount;
     }
 
-    public abstract int execute(Memory memory, IO io, Parameter...parameters) throws Exception;
+    public abstract long execute(Memory memory, IO io, Parameter...parameters) throws Exception;
 
-    private int getValue(Memory memory, IO io, Parameter parameter) {
+    private static long getValue(Memory memory, Parameter parameter) {
         switch (parameter.getMode()) {
             case POSITION:
-                return memory.intGet(parameter.getValue());
+                return memory.get((int) parameter.getValue());
             case IMMEDIATE:
                 return parameter.getValue();
+            case RELATIVE:
+                return memory.getRelative((int) parameter.getValue());
             default:
                 throw new IllegalArgumentException("unknown ParameterMode " + parameter.getMode());
         }
     }
 
-    private void setValue(Memory memory, IO io, Parameter parameter, int value) {
+    private static void setValue(Memory memory, Parameter parameter ,long value) {
         switch (parameter.getMode()) {
             case POSITION:
-                memory.intSet(parameter.getValue(), value);
+                memory.set((int) parameter.getValue(), value);
                 break;
             case IMMEDIATE:
                 throw new IllegalArgumentException("cannot set with IMMEDIATE ParameterMode");
+            case RELATIVE:
+                memory.setRelative((int) parameter.getValue(), value);
+                break;
             default:
                 throw new IllegalArgumentException("unknown ParameterMode " + parameter.getMode());
         }

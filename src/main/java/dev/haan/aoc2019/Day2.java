@@ -1,7 +1,5 @@
 package dev.haan.aoc2019;
 
-import java.io.IOException;
-
 import dev.haan.aoc2019.intcode.Computer;
 import dev.haan.aoc2019.intcode.Memory;
 
@@ -18,8 +16,8 @@ public class Day2 {
         for (var n = 0; n < 99; n++) {
             for (var v = 0; v < 99; v++) {
                 var memory = Memory.load(input);
-                memory.intSet(1, n);
-                memory.intSet(2, v);
+                memory.set(1, n);
+                memory.set(2, v);
 
                 if (computer.execute(memory) == 19690720) {
                     System.out.println("Target " + (100 * n + v));

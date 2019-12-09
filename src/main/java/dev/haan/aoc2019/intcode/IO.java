@@ -25,8 +25,8 @@ public final class IO {
         );
     }
 
-    public static IO bridge(Integer...initial) {
-        BlockingQueue<Integer> queue = new LinkedBlockingQueue<>(Arrays.asList(initial));
+    public static IO bridge(Long...initial) {
+        var queue = new LinkedBlockingQueue<>(Arrays.asList(initial));
         return new IO(queue::take, queue::put);
     }
 }

@@ -15,21 +15,21 @@ public class Day7 {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         var input = InputLoader.load("day7.txt");
-        int highestSignal = 0;
+        var highestSignal = 0L;
 
-        int largestResult = 0;
-        var phaseSequence = List.of(0, 1, 2, 3, 4);
-        for (List<Integer> permutation : permutations(phaseSequence)) {
-            int lastResult = computeSignal(permutation, input);
+        var largestResult = 0L;
+        var phaseSequence = List.of(0L, 1L, 2L, 3L, 4L);
+        for (List<Long> permutation : permutations(phaseSequence)) {
+            var lastResult = computeSignal(permutation, input);
             if (lastResult > largestResult) {
                 largestResult = lastResult;
             }
         }
         System.out.println(largestResult);
 
-        var feedbackPhaseSequence = List.of(5, 6, 7, 8, 9);
-        for (List<Integer> permutation : permutations(feedbackPhaseSequence)) {
-            int lastResult = computeSignal(permutation, input);
+        var feedbackPhaseSequence = List.of(5L, 6L, 7L, 8L, 9L);
+        for (List<Long> permutation : permutations(feedbackPhaseSequence)) {
+            var lastResult = computeSignal(permutation, input);
             if (lastResult > highestSignal) {
                 highestSignal = lastResult;
             }
@@ -37,8 +37,8 @@ public class Day7 {
         System.out.println(highestSignal);
     }
 
-    private static int computeSignal(List<Integer> phaseCodes, String input) throws InterruptedException {
-        var eaBridge = IO.bridge(phaseCodes.get(0), 0);
+    private static long computeSignal(List<Long> phaseCodes, String input) throws InterruptedException {
+        var eaBridge = IO.bridge(phaseCodes.get(0), 0L);
         var abBridge = IO.bridge(phaseCodes.get(1));
         var bcBridge = IO.bridge(phaseCodes.get(2));
         var cdBridge = IO.bridge(phaseCodes.get(3));
@@ -74,8 +74,8 @@ public class Day7 {
         }
     }
 
-    private static Set<List<Integer>> permutations(List<Integer> seed) {
-        var permutations = new HashSet<List<Integer>>();
+    private static Set<List<Long>> permutations(List<Long> seed) {
+        var permutations = new HashSet<List<Long>>();
         if (seed.size() == 1) {
             permutations.add(seed);
         } else {
@@ -85,8 +85,8 @@ public class Day7 {
                 var remaining = new ArrayList<>(seed);
                 remaining.remove(i);
 
-                for (List<Integer> permutation : permutations(remaining)) {
-                    List<Integer> finalPermutation = new ArrayList<>();
+                for (List<Long> permutation : permutations(remaining)) {
+                    List<Long> finalPermutation = new ArrayList<>();
                     finalPermutation.add(v);
                     finalPermutation.addAll(permutation);
                     permutations.add(finalPermutation);

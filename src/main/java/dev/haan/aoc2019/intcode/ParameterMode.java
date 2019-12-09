@@ -4,7 +4,8 @@ import java.util.stream.Stream;
 
 public enum ParameterMode {
     POSITION(0),
-    IMMEDIATE(1);
+    IMMEDIATE(1),
+    RELATIVE(2);
 
     private final int code;
 

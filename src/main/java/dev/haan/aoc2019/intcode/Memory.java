@@ -6,35 +6,45 @@ import java.util.stream.Collectors;
 
 public class Memory {
 
-    private final List<String> memory;
+    private final List<Long> memory;
+    private int relativeBase = 0;
 
-    private Memory(List<String> memory) {
+    private Memory(List<Long> memory) {
         this.memory = memory;
     }
 
     public static Memory load(String input) {
         var memory = Arrays.stream(input.split(","))
+                .map(Long::parseLong)
                 .collect(Collectors.toList());
         return new Memory(memory);
     }
 
-    public static Memory load(List<String> input) {
+    public static Memory load(List<Long> input) {
         return new Memory(List.copyOf(input));
     }
 
-    public String get(int index) {
+    public long get(int index) {
+        if (index >= memory.size()) allocateMemory(index);
         return memory.get(index);
     }
 
-    public int intGet(int index) {
-        return Integer.parseInt(get(index));
+    public long getRelative(int index) {
+        return get(relativeBase + index);
     }
 
-    public void set(int index, String value) {
+    public void set(int index, long value) {
+        if (index >= memory.size()) allocateMemory(index);
         memory.set(index, value);
     }
 
-    public void intSet(int index, int value) {
-        memory.set(index, String.valueOf(value));
+    public void setRelative(int index, long value) {
+        set(relativeBase + index, value);
+    }
+
+    private void allocateMemory(long amount) {
+        for (int i = 0; i < amount; i++) {
+            memory.add(amount);
+        }
     }
 }
