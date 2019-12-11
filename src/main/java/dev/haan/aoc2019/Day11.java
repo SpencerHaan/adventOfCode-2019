@@ -3,14 +3,11 @@ package dev.haan.aoc2019;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import dev.haan.aoc2019.intcode.Computer;
 import dev.haan.aoc2019.intcode.IO;
-import dev.haan.aoc2019.intcode.QueuedInputReader;
-import dev.haan.aoc2019.intcode.QueuedOutputWriter;
+import dev.haan.aoc2019.intcode.Reader;
+import dev.haan.aoc2019.intcode.Writer;
 
 public class Day11 {
 
@@ -46,50 +43,44 @@ public class Day11 {
 
     private static class Robolangelo {
 
-        private final QueuedInputReader inputReader = new QueuedInputReader();
-        private final QueuedOutputWriter outputWriter = new QueuedOutputWriter();
+        private final Map<Coordinates, Panel> panels = new HashMap<>();
 
+        private boolean painting = true;
         private Coordinates coordinates = new Coordinates(0,0);
         private Heading heading = Heading.UP;
-        private boolean done = false;
 
-        public Map<Coordinates, Panel> startPainting(String program) throws ExecutionException, InterruptedException {
-            var executor = Executors.newFixedThreadPool(2);
-            Computer robotComputer = new Computer(new IO(inputReader, outputWriter));
-            executor.submit(() -> {
-                try {
-                    robotComputer.execute(program);
-                    System.out.println("Painting finished");
-                } catch (Exception e) {
-                    e.printStackTrace();
+        public Map<Coordinates, Panel> startPainting(String program) {
+            panels.put(coordinates, new Panel(1));
+
+            Computer robotComputer = new Computer(new IO(reader(), writer()));
+            try {
+                robotComputer.execute(program);
+                System.out.println("Painting finished");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return panels;
+        }
+
+        private Reader reader() {
+            return () -> panels.computeIfAbsent(coordinates, c -> new Panel(0)).colour;
+        }
+
+        private Writer writer() {
+            return value -> {
+                if (painting) {
+                    panels.put(coordinates, new Panel(Math.toIntExact(value)));
+                    painting = false;
+                } else {
+                    if (value == 0) {
+                        turnCounterClockwise();
+                    } else {
+                        turnClockwise();
+                    }
+                    moveForward();
+                    painting = true;
                 }
-            });
-            Future<Map<Coordinates, Panel>> paintedPanelsFuture = executor.submit(() -> {
-                var paintPanels = new HashMap<Coordinates, Panel>();
-                paintPanels.put(coordinates, new Panel(1));
-                try {
-                    do {
-                        inputReader.put(paintPanels.containsKey(coordinates) ? paintPanels.get(coordinates).colour : 0);
-
-                        var paintColour = outputWriter.take();
-                        if (paintColour == null) break; // KLUDGE
-                        paintPanels.put(coordinates, new Panel(Math.toIntExact((paintColour))));
-
-                        var direction = outputWriter.take();
-                        if (direction == 0) {
-                            turnCounterClockwise();
-                        } else {
-                            turnClockwise();
-                        }
-                        moveForward();
-                    } while (!done);
-                } catch (InterruptedException e) {
-                    // Do nothing
-                }
-                return paintPanels;
-            });
-            executor.shutdown();
-            return paintedPanelsFuture.get();
+            };
         }
 
         public void turnClockwise() {
