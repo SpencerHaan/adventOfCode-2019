@@ -1,8 +1,6 @@
 package dev.haan.aoc2019.intcode;
 
 import java.util.Arrays;
-import java.util.Scanner;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public final class IO {
@@ -16,13 +14,7 @@ public final class IO {
     }
 
     public static IO console() {
-        return new IO(
-                () -> {
-                    System.out.print("Input: ");
-                    return Integer.parseInt(new Scanner(System.in).nextLine());
-                },
-                value -> System.out.println("Output: " + value)
-        );
+        return new IO(Reader.system(), Writer.system());
     }
 
     public static IO bridge(Long...initial) {
