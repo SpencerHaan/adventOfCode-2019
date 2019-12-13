@@ -9,6 +9,7 @@ import dev.haan.aoc2019.arcade.DisplayWriter;
 import dev.haan.aoc2019.arcade.Joystick;
 import dev.haan.aoc2019.arcade.JoystickReader;
 import dev.haan.aoc2019.arcade.Tile;
+import dev.haan.aoc2019.intcode.BufferedWriter;
 import dev.haan.aoc2019.intcode.Computer;
 import dev.haan.aoc2019.intcode.IO;
 import dev.haan.aoc2019.intcode.Memory;
@@ -92,35 +93,37 @@ public class Day13 {
 
     private static class BlockCounterWriter implements Writer {
 
-        private int outputCount = 0;
+        private BufferedWriter bufferedWriter;
         private int blockCounter = 0;
+
+        public BlockCounterWriter() {
+            this.bufferedWriter = new BufferedWriter(3, this::handle);
+        }
 
         @Override
         public void write(long value) {
-            if (outputCount++ == 2 && Tile.fromId((int) value) == Tile.BLOCK) {
-                blockCounter++;
-            }
+            bufferedWriter.write(value);
+        }
 
-            if (outputCount == 3) {
-                outputCount = 0;
+        private void handle(long[] values) {
+            if (Tile.fromId((int) values[2]) == Tile.BLOCK) {
+                blockCounter++;
             }
         }
     }
 
     private static class GameSolver implements Reader, Writer {
 
+        private final BufferedWriter bufferedWriter;
         private final Display display;
 
         private int paddleX = 0;
         private int paddleXOffset = 0;
 
-        private int outputCount = 0;
-        private int x = 0;
-        private int y = 0;
-
         private boolean startRateLimiting = false;
 
         private GameSolver(Display display) {
+            this.bufferedWriter = new BufferedWriter(3, this::handle);
             this.display = display;
         }
 
@@ -134,40 +137,34 @@ public class Day13 {
         }
 
         @Override
-        public void write(long value) throws InterruptedException {
-            switch (outputCount++) {
-                case 0:
-                    x = (int) value;
-                    break;
+        public void write(long value) {
+            bufferedWriter.write(value);
 
-                case 1:
-                    if (y < value) System.out.println();
-                    y = (int) value;
-                    break;
+        }
 
-                case 2:
-                    if (x == -1 && y == 0) {
-                        display.setScore((int) value);
-                        startRateLimiting = true;
-                    }
-                    else {
-                        var tile = Tile.fromId((int) value);
-                        display.putTile(x, y, tile);
-                        if (tile == Tile.BALL) {
-                            paddleXOffset = Integer.compare(x, paddleX);
-                        } else if (tile == Tile.HORIZONTAL_PADDLE) {
-                            paddleX = x;
-                        }
-                    }
-                    break;
+        private void handle(long[] values) {
+            int x = (int) values[0];
+            int y = (int) values[1];
+
+            if (x == -1 && y == 0) {
+                display.setScore((int) values[2]);
+                startRateLimiting = true;
+            } else {
+                var tile = Tile.fromId((int) values[2]);
+                display.putTile(x, y, tile);
+                if (tile == Tile.BALL) {
+                    paddleXOffset = Integer.compare(x, paddleX);
+                } else if (tile == Tile.HORIZONTAL_PADDLE) {
+                    paddleX = x;
+                }
             }
 
             if (startRateLimiting) {
-                Thread.sleep(3);
-            }
-
-            if (outputCount == 3) {
-                outputCount = 0;
+                try {
+                    Thread.sleep(3);
+                } catch (InterruptedException e) {
+                    // Do nothing
+                }
             }
         }
     }
