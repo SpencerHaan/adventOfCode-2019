@@ -59,7 +59,7 @@ public class Computer {
                 break;
             }
 
-            instructionPointer = newPointer == 0
+            instructionPointer = newPointer < 0
                     ? instructionPointer + instruction.parameterCount()
                     : newPointer;
         } while (true);
