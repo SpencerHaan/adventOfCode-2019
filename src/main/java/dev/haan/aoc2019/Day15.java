@@ -3,24 +3,39 @@ package dev.haan.aoc2019;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
+import javax.swing.*;
+
+import dev.haan.aoc2019.day15.AreaComponent;
+import dev.haan.aoc2019.day15.Position;
 import dev.haan.aoc2019.intcode.Computer;
 import dev.haan.aoc2019.intcode.IO;
 
 public class Day15 {
 
     public static void main(String[] args) throws Exception {
+        AreaComponent areaComponent = new AreaComponent();
+        SwingUtilities.invokeLater(() -> {
+            var mainFrame = new JFrame("Repair Droid");
+            mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+            mainFrame.setSize(615, 635);
+            mainFrame.add(areaComponent);
+            mainFrame.setVisible(true);
+            mainFrame.setLocationRelativeTo(null);
+        });
+
+        Thread.sleep(10000);
+
         String program = InputLoader.load("day15.txt");
-        var droid = part1(program);
-        part2(droid);
+        var droid = part1(program, areaComponent);
+        part2(droid, areaComponent);
     }
 
-    private static RepairDroid part1(String program) throws ExecutionException, InterruptedException {
-        var droid = new RepairDroid();
+    private static RepairDroid part1(String program, AreaComponent areaComponent) throws ExecutionException, InterruptedException {
+        var droid = new RepairDroid(areaComponent);
         var executor = Executors.newSingleThreadExecutor();
         var future = executor.submit(() -> {
             try {
@@ -37,11 +52,12 @@ public class Day15 {
         return droid;
     }
 
-    private static void part2(RepairDroid droid) throws InterruptedException {
+    private static void part2(RepairDroid droid, AreaComponent areaComponent) throws InterruptedException {
         Map<Position, Integer> area = new HashMap<>(droid.area);
         Position oxygenSystem = droid.oxygenSystem;
 
-        print(droid.minX, droid.maxX, droid.minY, droid.maxY, 0, 0, area);
+        areaComponent.update(area, new Position(0, 0));
+//        print(droid.minX, droid.maxX, droid.minY, droid.maxY, 0, 0, area);
 
         int minutes = 0;
         Set<Position> oxygenEdge = new HashSet<>();
@@ -49,25 +65,25 @@ public class Day15 {
         do {
             Set<Position> newOxygenEdge = new HashSet<>();
             for (Position edge : oxygenEdge) {
-                var north = new Position(edge.x, edge.y - 1);
+                var north = new Position(edge.x(), edge.y() - 1);
                 if (area.containsKey(north) && area.get(north) == 1) {
                     area.put(north, 2);
                     newOxygenEdge.add(north);
                 }
 
-                var south = new Position(edge.x, edge.y + 1);
+                var south = new Position(edge.x(), edge.y() + 1);
                 if (area.containsKey(south) && area.get(south) == 1) {
                     area.put(south, 2);
                     newOxygenEdge.add(south);
                 }
 
-                var west = new Position(edge.x - 1, edge.y);
+                var west = new Position(edge.x() - 1, edge.y());
                 if (area.containsKey(west) && area.get(west) == 1) {
                     area.put(west, 2);
                     newOxygenEdge.add(west);
                 }
 
-                var east = new Position(edge.x + 1, edge.y);
+                var east = new Position(edge.x() + 1, edge.y());
                 if (area.containsKey(east) && area.get(east) == 1) {
                     area.put(east, 2);
                     newOxygenEdge.add(east);
@@ -77,15 +93,16 @@ public class Day15 {
             oxygenEdge.addAll(newOxygenEdge);
             if (!newOxygenEdge.isEmpty()) {
                 minutes++;
-                print(droid.minX, droid.maxX, droid.minY, droid.maxY, 0, 0, area);
-                System.out.println(minutes);
-                System.out.println();
+                areaComponent.update(area, new Position(0, 0));
+//                print(droid.minX, droid.maxX, droid.minY, droid.maxY, 0, 0, area);
             }
         } while (!oxygenEdge.isEmpty());
         System.out.println(minutes);
     }
 
-    private static class RepairDroid {
+    public static class RepairDroid {
+
+        private final AreaComponent areaComponent;
 
         private final Map<Position, Integer> area = new HashMap<>();
         private final Set<Position> path = new HashSet<>();
@@ -104,7 +121,8 @@ public class Day15 {
         private int minY = -10;
         private int maxY = 10;
 
-        public RepairDroid() {
+        public RepairDroid(AreaComponent areaComponent) {
+            this.areaComponent = areaComponent;
             this.computer = new Computer(new IO(this::readInput, this::handleStatus));
             area.put(new Position(0, 0), 1);
             path.add(new Position(0, 0));
@@ -118,7 +136,7 @@ public class Day15 {
             return heading;
         }
 
-        private void handleStatus(long value) {
+        private void handleStatus(long value) throws InterruptedException {
             var x = heading == 3 ? curX - 1 : heading == 4 ? curX + 1 : curX;
             var y = heading == 1 ? curY - 1 : heading == 2 ? curY + 1 : curY;
             area.put(new Position(x, y), (int) value);
@@ -155,6 +173,7 @@ public class Day15 {
                 else if (heading == 2) heading = 3;
                 else heading = 1;
             }
+            areaComponent.update(area, new Position(curX, curY));
 //            print(x, y);
         }
 
@@ -197,28 +216,4 @@ public class Day15 {
         System.out.println();
     }
 
-    private static class Position {
-
-        private final int x;
-        private final int y;
-
-        Position(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Position position = (Position) o;
-            return x == position.x &&
-                    y == position.y;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(x, y);
-        }
-    }
 }
