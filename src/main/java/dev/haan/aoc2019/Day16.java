@@ -1,9 +1,6 @@
 package dev.haan.aoc2019;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,27 +12,32 @@ public class Day16 {
         List<Integer> signal = input.chars().mapToObj(Character::getNumericValue)
                 .collect(Collectors.toList());
 //        signal.forEach(System.out::println);
+//        part1(signal);
+        part2(signal);
+    }
 
+    public static void part1(List<Integer> signal) {
         var pattern = List.of(0, 1, 0, -1);
 
-
         List<Integer> currentSignal = signal;
-        int phase = 0;
-        for(; phase < 100; phase++) {
+        long phase = 0;
+        for (; phase < 100; phase++) {
             List<Integer> newSignal = new ArrayList<>();
             for (int i = 0; i < signal.size(); i++) {
-                int sum = 0;
-                BigDecimal patternSizeBD = BigDecimal.valueOf(pattern.size());
-                BigDecimal iBD = BigDecimal.valueOf(i).add(BigDecimal.ONE);
-                BigDecimal multiply = patternSizeBD.multiply(iBD);
-                BigDecimal divide = patternSizeBD.divide(multiply, 50, RoundingMode.FLOOR);
-//                double patternStepSize = pattern.size() / (pattern.size() * (i + 1.0));
-                for (int j = 0; j < signal.size(); j++) {
-//                    int patternIndex = (int) (patternStepSize * (j + 1)) % pattern.size();
-                    int patternIndex = divide.multiply(BigDecimal.valueOf(j).add(BigDecimal.ONE)).remainder(patternSizeBD).toBigInteger().intValue();
-                    sum += currentSignal.get(j) * pattern.get(patternIndex);
+                long sum = 0;
+                List<Integer> currentPattern = new ArrayList<>();
+                for (Integer p : pattern) {
+                    for (int x = 0; x < (i + 1); x++) {
+                        currentPattern.add(p);
+                    }
+                }
 
-//                    System.out.print(String.format("%2d * %2d ", signal.get(j), pattern.get((int) patternIndex)));
+                for (int j = i; j < signal.size(); j++) {
+//                    int index = pattern.size() * (j + 1) % pattern.size();
+                    int index = (j + 1) % currentPattern.size();
+                    sum += currentSignal.get(j) * currentPattern.get(index);
+
+//                    System.out.print(String.format("%2d * %2d ", signal.get(j), currentPattern.get(index)));
                 }
                 String sumString = String.valueOf(sum);
                 int value = Character.getNumericValue(sumString.charAt(sumString.length() - 1));
@@ -45,9 +47,47 @@ public class Day16 {
 //                System.out.println();
             }
             currentSignal = newSignal;
-//            18737230
+//            System.out.println();
+        }
+        System.out.println("Signal after " + phase + " phases: " + currentSignal.stream().limit(8).map(String::valueOf).collect(Collectors.joining()));
+    }
 
-//            System.out.println("Signal after " + phase + " phases: " + currentSignal.stream()./*limit(8).*/map(String::valueOf).collect(Collectors.joining()));
+    public static void part2(List<Integer> signal) {
+        List<Integer> bigSignal = new ArrayList<>();
+//        for (int i = 0; i < 10000; i++) {
+//            bigSignal.addAll(signal);
+//        }
+//        signal = bigSignal;
+        var pattern = List.of(0, 1, 0, -1);
+
+        List<Integer> currentSignal = signal;
+        long phase = 0;
+        for (; phase < 4; phase++) {
+            List<Integer> newSignal = new ArrayList<>();
+            for (int i = 0; i < signal.size(); i++) {
+                long sum = 0;
+                List<Integer> currentPattern = new ArrayList<>();
+                for (Integer p : pattern) {
+                    for (int x = 0; x < (i + 1); x++) {
+                        currentPattern.add(p);
+                    }
+                }
+
+                for (int j = i; j < signal.size(); j++) {
+                    int index = (j + 1) % currentPattern.size();
+                    sum += currentSignal.get(j) * currentPattern.get(index);
+//                    if (i != 0 && j % i == 0) j += i;
+
+//                    System.out.print(String.format("%2d * %2d ", signal.get(j), currentPattern.get(index)));
+                }
+                String sumString = String.valueOf(sum);
+                int value = Character.getNumericValue(sumString.charAt(sumString.length() - 1));
+                newSignal.add(value);
+
+//                System.out.print(String.format(" = %2d ", value));
+//                System.out.println();
+            }
+            currentSignal = newSignal;
 //            System.out.println();
         }
         System.out.println("Signal after " + phase + " phases: " + currentSignal.stream().limit(8).map(String::valueOf).collect(Collectors.joining()));
