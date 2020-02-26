@@ -6,6 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.*;
 
+import dev.haan.aoc2019.common.Position;
+
 public class AreaComponent extends JComponent {
 
     private Map<Position, Integer> area = new ConcurrentHashMap<>();

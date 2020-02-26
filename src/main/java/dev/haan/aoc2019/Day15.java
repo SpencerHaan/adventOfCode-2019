@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 import javax.swing.*;
 
 import dev.haan.aoc2019.day15.AreaComponent;
-import dev.haan.aoc2019.day15.Position;
+import dev.haan.aoc2019.common.Position;
 import dev.haan.aoc2019.intcode.Computer;
 import dev.haan.aoc2019.intcode.IO;
 

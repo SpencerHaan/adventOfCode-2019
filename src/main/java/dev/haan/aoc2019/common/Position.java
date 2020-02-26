@@ -1,8 +1,6 @@
-package dev.haan.aoc2019.day15;
+package dev.haan.aoc2019.common;
 
 import java.util.Objects;
-
-import dev.haan.aoc2019.Day15;
 
 public class Position {
 
@@ -22,6 +20,22 @@ public class Position {
         return y;
     }
 
+    public Position up() {
+        return new Position(x, y - 1);
+    }
+
+    public Position down() {
+        return new Position(x, y + 1);
+    }
+
+    public Position left() {
+        return new Position(x - 1, y);
+    }
+
+    public Position right() {
+        return new Position(x + 1, y);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -34,5 +48,10 @@ public class Position {
     @Override
     public int hashCode() {
         return Objects.hash(x, y);
+    }
+
+    @Override
+    public String toString() {
+        return "[" + x + ", " + y + "]";
     }
 }
