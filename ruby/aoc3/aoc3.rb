@@ -7,11 +7,10 @@ def lay_wires(wire_path)
   current_y = 0
 
   points = []
-  wire_path.split(',').each do |instruction|
-    direction = instruction[0].downcase
-    amount = instruction[1..-1].to_i
-    amount.times do
-      case direction
+  instructions = parse_instructions(wire_path)
+  instructions.each do |instruction|
+    instruction[:amount].times do
+      case instruction[:direction]
       when 'u'
         current_y -= 1
       when 'd'
@@ -27,6 +26,14 @@ def lay_wires(wire_path)
     end
   end
   points
+end
+
+def parse_instructions(wire_path)
+  wire_path.split(',').map do |instruction|
+    direction = instruction[0].downcase
+    amount = instruction[1..-1].to_i
+    { direction: direction, amount: amount }
+  end
 end
 
 def manhattan_distance(point)
