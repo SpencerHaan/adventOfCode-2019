@@ -39,6 +39,18 @@ def shortest_distance(point_a, point_b)
   distance_a < distance_b ? point_a : point_b
 end
 
+def count_steps_to_intersections(points:, intersections:)
+  steps_to_intersections = {}
+
+  steps = 0
+  points.each do |point|
+    steps += 1
+    steps_to_intersections[point] = steps if intersections.include?(point) && !steps_to_intersections.include?(point)
+  end
+
+  steps_to_intersections
+end
+
 def part_1
   input = File.open(INPUT_FILE).readlines
 
@@ -51,7 +63,27 @@ def part_1
   intersections = wire_points1 & wire_points2
   closest_point = intersections.reduce { |a, b| shortest_distance(a, b) }
 
-  puts manhattan_distance(closest_point)
+  manhattan_distance(closest_point)
 end
 
-part_1
+def part_2
+  input = File.open(INPUT_FILE).readlines
+
+  wire_path1 = input[0]
+  wire_path2 = input[1]
+
+  wire_points1 = lay_wires(wire_path1)
+  wire_points2 = lay_wires(wire_path2)
+
+  intersections = wire_points1 & wire_points2
+
+
+  wire1_steps_to_intersections = count_steps_to_intersections(points: wire_points1, intersections: intersections)
+  wire2_steps_to_intersections = count_steps_to_intersections(points: wire_points2, intersections: intersections)
+
+  total_steps_to_intersections = wire1_steps_to_intersections.merge(wire2_steps_to_intersections) { |_, a, b| a + b }
+  total_steps_to_intersections.values.min
+end
+
+puts "Manhattan distance of closest intersection: #{part_1}"
+puts "Fewest combined steps to reach an intersection: #{part_2}"
